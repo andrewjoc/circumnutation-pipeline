@@ -2,7 +2,7 @@ setup:
   experiment_name: "rice-scan"
   plate_number: "002"
   treatment: "GA3"
-  num_plants: 999999
+  num_plants: 10
   overwrite_duplicate: False
 
 path:
