@@ -8,7 +8,7 @@ setup:
 
 path:
   raw_images: "/Users/andrewoconnor/Projects/circumnutation-pipeline/test/data"
-  labels: "/Users/andrewoconnor/Projects/circumnutation-pipeline/test/labels"
+  labels: "/Users/andrewoconnor/Projects/circumnutation-pipeline/test/test_labels.v001.slp"
 
 model:
   centroid_sigma: 2.5

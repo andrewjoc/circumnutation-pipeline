@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import sleap
+import shutil
 import imageio as iio
 from sleap import Labels
 import logging
@@ -47,14 +48,6 @@ def pipeline_config_resource(context):
 @op(required_resource_keys={"pipeline_config"})
 def initialize_run(context):
 
-    # TODO: If pipeline_config plate number is not the same as plate number in raw
-    # images filename, raise error
-
-    # TODO: If run folder exists but overwrite duplicate exists, terminate pipeline
-
-    # TODO: If metadata csv in process_image_directory
-    # exists in output directory, don't overwrite
-
     pipeline_config = context.resources.pipeline_config
 
     experiment_name = pipeline_config["setup"]["experiment_name"]
@@ -73,6 +66,7 @@ def initialize_run(context):
     paths = [
         run_path,
         raw_images_path,
+        run_path / "configs",
         run_path / "h5_videos",
         run_path / "videos",
         run_path / "labels",
@@ -84,6 +78,13 @@ def initialize_run(context):
     for path in paths:
         os.makedirs(path, exist_ok=True)
         logging.info(f"Created directory {path}")
+
+    configs_path = Path.cwd() / "circumnutation_pipeline" / "configs"
+    configs_list = os.listdir(configs_path)
+
+    for config in configs_list:
+        shutil.copy(configs_path / config, run_path / "configs")
+        logging.info(f"Saved copy of {config} to {run_path / 'configs'}")
 
     context.log.info(f"Run {run_id} initialized successfully.")
 
@@ -152,7 +153,7 @@ def create_h5(context, run_info):
     ins={"run_info": In(), "h5_color": In()},
     out={"video_path": Out(str)},
 )
-def create_timelapse_video(context, run_info, h5_color):
+def create_timelapse_videos(context, run_info, h5_color):
 
     logging.info(f"Processing color h5 video in location {h5_color}")
 
@@ -162,7 +163,14 @@ def create_timelapse_video(context, run_info, h5_color):
         h5_color, pipeline_config["setup"]["plate_number"], run_info["run_id"]
     )
 
-    yield Output("test", output_name="video_path")
+    create_videos(
+        h5_color,
+        pipeline_config["setup"]["plate_number"],
+        run_info["run_id"],
+        labels=pipeline_config["path"]["labels"],
+    )
+
+    return "hello"
 
 
 ####################
@@ -171,10 +179,23 @@ def create_timelapse_video(context, run_info, h5_color):
 # Graph
 @graph
 def circumnutation_pipeline():
+
+    # TODO: If pipeline_config plate number is not the same as plate number in raw
+    # images filename, raise error
+
+    # TODO: If run folder exists but overwrite duplicate exists, terminate pipeline
+
+    # TODO: If metadata csv in process_image_directory
+    # exists in output directory, don't overwrite
+
+    # TODO: Save copies of all configs to the run_id directory
+
+    # TODO: Check for operating system and run appropriate .sh or .bat script
+    # use platform module -> platform.system() = Darwin or Windows
+
     run_info = initialize_run()
     h5_greyscale, h5_color = create_h5(run_info)
-
-    unlabeled_video = create_timelapse_video(run_info, h5_color)
+    create_timelapse_videos(run_info=run_info, h5_color=h5_color)
 
 
 # Job

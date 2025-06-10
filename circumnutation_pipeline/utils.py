@@ -180,19 +180,34 @@ def create_videos(h5_path, plate_num, run_id, labels=None):
     curr_labels = Labels()
     curr_labels.add_video(curr_video)
 
-    out_filename = (
-        Path.cwd()
-        / "runs"
-        / run_id
-        / "videos"
-        / f"plate_{plate_num}_video_unlabeled.avi"
-    )
+    if labels:
+        curr_labels = sleap.load_file(labels)
+
+        if curr_video not in curr_labels.videos:
+            curr_labels.add_video(curr_video)
+
+        out_filename = (
+            Path.cwd()
+            / "runs"
+            / run_id
+            / "videos"
+            / f"plate_{plate_num}_video_labeled.avi"
+        )
+
+    else:
+        out_filename = (
+            Path.cwd()
+            / "runs"
+            / run_id
+            / "videos"
+            / f"plate_{plate_num}_video_unlabeled.avi"
+        )
 
     save_labeled_video(
         filename=out_filename,
         labels=curr_labels,
         video=curr_video,
-        frames=[0, 1, 2, 3, 4],
+        frames=list(range(curr_video.num_frames)),
         fps=30,
         marker_size=12,
         scale=0.25,
