@@ -1,0 +1,25 @@
+setup:
+  experiment_name: "rice-scan"
+  os: "macos"
+  plate_number: "001"
+  treatment: "GA3"
+  num_plants: 999999
+  overwrite_duplicate: False
+
+path:
+  raw_images: "/Users/andrewoconnor/Projects/circumnutation-pipeline/test/data"
+  labels: "/Users/andrewoconnor/Projects/circumnutation-pipeline/test/labels"
+
+model:
+  centroid_sigma: 2.5
+  node_sigma: 2.3
+  centroid_model:
+    batch_size: 1
+  centered_instance_model:
+    batch_size: 4
+    crop: 64
+
+predict:
+  track: "flow"
+  similarity: "centroid"
+  frame_window: 10
