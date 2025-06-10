@@ -190,8 +190,10 @@ def circumnutation_pipeline():
 
     # TODO: Save copies of all configs to the run_id directory
 
+    # TODO: Update output to create_timelapse_videos
+
     # TODO: Check for operating system and run appropriate .sh or .bat script
-    # use platform module -> platform.system() = Darwin or Windows
+    # use platform module -> platform.system() = Darwin or Windows + integrate with wandb
 
     run_info = initialize_run()
     h5_greyscale, h5_color = create_h5(run_info)
