@@ -1,0 +1,4 @@
+resources:
+  pipeline_config:
+    config:
+      pipeline_config_path: "/Users/andrewoconnor/Projects/circumnutation-pipeline/circumnutation_pipeline/configs/pipeline_config.yaml"

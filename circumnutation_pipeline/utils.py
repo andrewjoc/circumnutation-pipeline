@@ -9,13 +9,15 @@ import json
 import pandas as pd
 import hashlib
 import yaml
+import sleap
+from sleap.io.visuals import save_labeled_video, Labels
 import glob
 import logging
 
 
 def generate_run_hash():
     # Read pipeline config as a dict
-    cwd = Path.cwd() / "circumnutation_pipeline"
+    cwd = Path.cwd() / "circumnutation_pipeline" / "configs"
     with open(cwd / "pipeline_config.yaml", "r") as file:
         try:
             yaml_data = yaml.safe_load(file)
@@ -103,8 +105,6 @@ def process_image_directory(
             # Convert image to greyscale
             img = np.dot(img[..., :3], [0.2989, 0.5870, 0.1140])
 
-            # Convert image to greyscale
-            img = np.dot(img[..., :3], [0.2989, 0.5870, 0.1140])
             img = img.astype(np.uint8)
 
         # Extract plate number, day, and time from the filename
@@ -167,3 +167,33 @@ def process_image_directory(
     df = pd.DataFrame.from_records(df_rows)
     df.to_csv(df_path, index=False)
     logging.info(f"Saved DataFrame {df_path} to {df_path}")
+
+
+def create_videos(h5_path, plate_num, run_id, labels=None):
+
+    curr_video = sleap.Video.from_hdf5(filename=h5_path, dataset="vol")
+
+    # raise error if greyscale - videos should only be
+    if curr_video.shape[-1] != 3:
+        raise ValueError(f"Video has {curr_video.shape[-1]} color channels, Expected 3")
+
+    curr_labels = Labels()
+    curr_labels.add_video(curr_video)
+
+    out_filename = (
+        Path.cwd()
+        / "runs"
+        / run_id
+        / "videos"
+        / f"plate_{plate_num}_video_unlabeled.avi"
+    )
+
+    save_labeled_video(
+        filename=out_filename,
+        labels=curr_labels,
+        video=curr_video,
+        frames=[0, 1, 2, 3, 4],
+        fps=30,
+        marker_size=12,
+        scale=0.25,
+    )

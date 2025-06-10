@@ -1,7 +1,7 @@
 setup:
   experiment_name: "rice-scan"
   os: "macos"
-  plate_number: "001"
+  plate_number: "002"
   treatment: "GA3"
   num_plants: 999999
   overwrite_duplicate: False

@@ -12,7 +12,11 @@ import sleap
 import imageio as iio
 from sleap import Labels
 import logging
-from circumnutation_pipeline.utils import generate_run_hash, process_image_directory
+from circumnutation_pipeline.utils import (
+    generate_run_hash,
+    process_image_directory,
+    create_videos,
+)
 
 
 import dagster as dg
@@ -42,6 +46,14 @@ def pipeline_config_resource(context):
 
 @op(required_resource_keys={"pipeline_config"})
 def initialize_run(context):
+
+    # TODO: If pipeline_config plate number is not the same as plate number in raw
+    # images filename, raise error
+
+    # TODO: If run folder exists but overwrite duplicate exists, terminate pipeline
+
+    # TODO: If metadata csv in process_image_directory
+    # exists in output directory, don't overwrite
 
     pipeline_config = context.resources.pipeline_config
 
@@ -114,7 +126,7 @@ def create_h5(context, run_info):
         output_dir=h5_videos_path,
         experiment_name=pipeline_config["setup"]["experiment_name"],
         treatment=pipeline_config["setup"]["treatment"],
-        num_plants=pipeline_config["setup"]["plate_number"],
+        num_plants=pipeline_config["setup"]["num_plants"],
         greyscale=False,
     )
     logging.info(
@@ -135,6 +147,24 @@ def create_h5(context, run_info):
     yield Output(str(color_h5_path), output_name="h5_color")
 
 
+@op(
+    required_resource_keys={"pipeline_config"},
+    ins={"run_info": In(), "h5_color": In()},
+    out={"video_path": Out(str)},
+)
+def create_timelapse_video(context, run_info, h5_color):
+
+    logging.info(f"Processing color h5 video in location {h5_color}")
+
+    pipeline_config = context.resources.pipeline_config
+
+    create_videos(
+        h5_color, pipeline_config["setup"]["plate_number"], run_info["run_id"]
+    )
+
+    yield Output("test", output_name="video_path")
+
+
 ####################
 
 
@@ -143,6 +173,8 @@ def create_h5(context, run_info):
 def circumnutation_pipeline():
     run_info = initialize_run()
     h5_greyscale, h5_color = create_h5(run_info)
+
+    unlabeled_video = create_timelapse_video(run_info, h5_color)
 
 
 # Job
